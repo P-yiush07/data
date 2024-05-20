@@ -19,8 +19,6 @@ const FileUpload = () => {
   const [showLinearRegressionForm, setShowLinearRegressionForm] = useState(false);
   const [mse, setMSE] = useState(null); // State to store MSE value
   const [data, setData] = useState(null);
-  const [dataFetched, setDataFetched] = useState(false); // Track whether data has been fetched
-  const [dataTypesColumns, setDataTypesColumns] = useState([]); // Store columns from data types
 
 
   const handleFileChange = (event) => {
@@ -143,8 +141,6 @@ const FileUpload = () => {
     try {
       const res = await fetchDescribe();
       setData(res.data);
-      setDataFetched(true); // Set dataFetched to true after data is fetched
-
     } catch (error) {
       console.log(error);
     }
@@ -155,8 +151,22 @@ const FileUpload = () => {
   }
 
   const handleNull = (category) => {
+
     console.log(category);
-};
+
+    // Construct data object with selected_columns as an array containing the category
+    const data = {
+      selected_columns: [category]  // Pass category as an array element
+    };
+
+    axios.post('http://127.0.0.1:5000/fillna', data)
+      .then((response) => {
+        console.log('Null values filled successfully', response);
+      })
+      .catch((error) => {
+        console.log('Error filling null values:', error);
+      });
+  }
 
   return (
     <div>
@@ -299,34 +309,40 @@ const FileUpload = () => {
                 </tr>
               </thead>
               <tbody>
-                {Object.entries(data.missing_values).map(([category, value]) => (
-                  <tr key={category}>
-                    <td style={{ border: '1px solid #ddd', padding: '8px' }}>
-                      {category}
-                      {Object.entries(data.data_types).find(([cat, type]) => cat === category && (type === 'float64' || type === 'int64')) && (
-                           <button 
-                           style={{
-                            position: 'absolute',
-                            left: '8rem',
-                            marginTop: '-4px',
-                            padding: '6px 16px',
-                            backgroundColor: '#4CAF50',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                            transition: 'background-color 0.3s ease',
-                        }}
-                        onClick={() => handleNull(category)}
-                        >
+                {Object.entries(data.missing_values).map(([category, value]) => {
+                 
+                 const numbers = value
+
+                  return (
+                    <tr key={category}>
+                      <td style={{ border: '1px solid #ddd', padding: '8px' }}>
+                        {category}
+                          {Object.entries(data.data_types).find(([cat, type]) => cat === category && (type === 'float64' || type === 'int64')) && numbers !== 0 && (
+        
+                          <button
+                            style={{
+                              position: 'absolute',
+                              left: '8rem',
+                              marginTop: '-4px',
+                              padding: '6px 16px',
+                              backgroundColor: '#4CAF50',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '4px',
+                              cursor: 'pointer',
+                              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                              transition: 'background-color 0.3s ease',
+                            }}
+                            onClick={() => handleNull(category)}
+                          >
                             Remove Null Values
-                        </button>
-                    )}
+                          </button>
+                        )}
                       </td>
-                    <td style={{ border: '1px solid #ddd', padding: '8px' }}>{value}</td>
-                  </tr>
-                ))}
+                      <td style={{ border: '1px solid #ddd', padding: '8px' }}>{value}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -362,42 +378,42 @@ const FileUpload = () => {
           </div>
 
           <div>
-  <h2>Summary Statistics Table</h2>
-  <table style={{ borderCollapse: 'collapse', width: '100%' }}>
-    <thead>
-      <tr>
-        <th></th>
-        {Object.keys(data.summary_statistics).map((columnName, index) => (
-          <th key={index} style={{ border: '1px solid #ddd', padding: '8px', backgroundColor: '#f2f2f2' }}>{columnName}</th>
-        ))}
-      </tr>
-    </thead>
-    <tbody>
-      {['count', 'mean', 'std', 'min', '25%', '50%', '75%', 'max'].map((statistic, rowIndex) => (
-        <tr key={rowIndex}>
-          <td style={{ border: '1px solid #ddd', padding: '8px', backgroundColor: '#f2f2f2' }}>{statistic}</td>
-          {Object.entries(data.summary_statistics).map(([column, value], cellIndex) => {
-            let parsedData = {};
-            // Remove single quotes and extra quotes around the object value
-            const jsonString = value.replace(/'/g, '"').replace(/^"|"$/g, '');
-            try {
-              // Parse the JSON string into a JavaScript object
-              parsedData = JSON.parse(jsonString);
-            } catch (error) {
-              console.error('Failed to parse JSON:', error);
-            }
-            const statisticValue = parsedData[statistic];
-            return (
-              <td key={cellIndex} style={{ border: '1px solid #ddd', padding: '8px' }}>
-                {statisticValue !== undefined ? (statisticValue === 0 ? 0 : statisticValue) : 'N/A'}
-              </td>
-            );
-          })}
-        </tr>
-      ))}
-    </tbody>
-  </table>
-</div>
+            <h2>Summary Statistics Table</h2>
+            <table style={{ borderCollapse: 'collapse', width: '100%' }}>
+              <thead>
+                <tr>
+                  <th></th>
+                  {Object.keys(data.summary_statistics).map((columnName, index) => (
+                    <th key={index} style={{ border: '1px solid #ddd', padding: '8px', backgroundColor: '#f2f2f2' }}>{columnName}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {['count', 'mean', 'std', 'min', '25%', '50%', '75%', 'max'].map((statistic, rowIndex) => (
+                  <tr key={rowIndex}>
+                    <td style={{ border: '1px solid #ddd', padding: '8px', backgroundColor: '#f2f2f2' }}>{statistic}</td>
+                    {Object.entries(data.summary_statistics).map(([column, value], cellIndex) => {
+                      let parsedData = {};
+                      // Remove single quotes and extra quotes around the object value
+                      const jsonString = value.replace(/'/g, '"').replace(/^"|"$/g, '');
+                      try {
+                        // Parse the JSON string into a JavaScript object
+                        parsedData = JSON.parse(jsonString);
+                      } catch (error) {
+                        console.error('Failed to parse JSON:', error);
+                      }
+                      const statisticValue = parsedData[statistic];
+                      return (
+                        <td key={cellIndex} style={{ border: '1px solid #ddd', padding: '8px' }}>
+                          {statisticValue !== undefined ? (statisticValue === 0 ? 0 : statisticValue) : 'N/A'}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
 
         </div>
