@@ -141,7 +141,27 @@ def fill_na_with_mean(df, file_path, columns):
 
     # Return the dictionaries containing the mean value and sum of null values for each column
     return mean_values, null_values_sum, df
-
+   
    except Exception as e:
         print(f"Error filling values: {e}")
         return None
+   
+
+def drop_column(file_path, columns):
+   try:
+    # Load the CSV file into a DataFrame
+        df = pd.read_csv(file_path)
+
+        # Drop specified columns from the DataFrame
+        df.drop(columns=columns, inplace=True)
+        
+        # Return the modified DataFrame
+        return df
+   
+   except Exception as e:
+        # If an error occurs, print the error and return None
+        print(f"Error dropping columns: {e}")
+        return None
+
+
+

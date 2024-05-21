@@ -1,19 +1,20 @@
-from file_operations import fill_na_with_mean
+from file_operations import drop_column
 import pandas as pd
 
 # Sample CSV file path
 file_path = "uploads/titanic.csv"
 
-df = pd.read_csv(file_path)
+# Columns to drop
+columns_to_drop = ['Sex']
 
-columns_to_fill = ['Age']
-mean_values, null_values_sum, updated_df = fill_na_with_mean(df, file_path, columns_to_fill)
+# Call the drop_column function with the file path and columns to drop
+modified_df = drop_column(file_path, columns_to_drop)
 
-print("\nMean values used for filling NA:")
-print(mean_values)
+if modified_df is not None:
+    print("Columns dropped successfully:")
+    print(modified_df)
+else:
+    print("Error dropping columns.")
 
-print("\nNull values after filling with mean:")
-print(null_values_sum)
 
-print("\nUpdated DataFrame:")
-print(updated_df)
+

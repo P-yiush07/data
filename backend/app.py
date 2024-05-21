@@ -2,7 +2,7 @@ from flask import Flask, request, make_response, jsonify
 import pandas as pd
 import os
 from flask_cors import CORS
-from file_operations import read_tail, describe, plot_histogram, trainModel, fill_na_with_mean
+from file_operations import read_tail, describe, plot_histogram, trainModel, fill_na_with_mean, drop_column
 import threading
 import numpy as np
 import json
@@ -191,15 +191,10 @@ def fillna_route():
     
     mean_values, null_values_sum, updated_df = fill_na_with_mean(df, latest_file_path, selected_columns)
 
-    # Generate a unique filename for the updated file
-    unique_filename = str(uuid.uuid4()) + '.csv'
-    updated_file_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+    latest_file_path = latest_file_path
 
-    # Update the global variable `latest_file_path` to point to the updated DataFrame
-    latest_file_path = updated_file_path
-
-    # Save the updated DataFrame to the new file path
-    updated_df.to_csv(updated_file_path, index=False)
+    # Overwrite the original file with the updated DataFrame
+    updated_df.to_csv(latest_file_path, index=False)
 
     # Convert int64 types to native int types
     updated_df = updated_df.applymap(lambda x: int(x) if isinstance(x, np.int64) else x)
@@ -210,8 +205,6 @@ def fillna_route():
     if mean_values is not None and null_values_sum is not None and updated_df is not None:
         # Convert DataFrame to JSON-compatible dictionary
         updated_dict = updated_df.to_dict(orient='records')
-
-
 
         # Convert mean_values and null_values_sum to native Python types
         mean_values = {key: float(value) for key, value in mean_values.items()}
@@ -233,6 +226,40 @@ def fillna_route():
     else:
         # If there was an error, return an error response
         return make_response(jsonify({'error': 'Failed to fill NA values'}), 500)
+    
+@app.route('/dropcolumn', methods=['POST'])
+def drop():
+    global latest_file_path
+
+    if latest_file_path is None:
+        return make_response(jsonify({'error': 'No file uploaded yet'}), 400)
+    
+    # Extract selected columns from the request
+    selected_columns = request.json.get('selected_columns')
+
+    if not selected_columns:
+        return make_response(jsonify({'error': 'No columns selected'}), 400)
+    
+    dropped_df = drop_column(latest_file_path, selected_columns)
+
+    latest_file_path = latest_file_path
+
+    # Overwrite the original file with the updated DataFrame
+    dropped_df.to_csv(latest_file_path, index=False)
+
+    # Check if the function returned a valid DataFrame
+    if dropped_df is not None:
+        # Construct success response
+        response_data = {
+            'message': 'Column(s) dropped successfully'
+        }
+        # If successful, return the response
+        return json.dumps(response_data), 200
+    else:
+        # Construct error response
+        return make_response(jsonify({'error': 'Failed to drop column(s)'}), 500)
+
+  
 
 if __name__ == '__main__':
     app.run(debug=True)
