@@ -310,20 +310,17 @@ const FileUpload = () => {
               </thead>
               <tbody>
                 {Object.entries(data.missing_values).map(([category, value]) => {
-                 
-                 const numbers = value
+
+                  const numbers = value
 
                   return (
                     <tr key={category}>
-                      <td style={{ border: '1px solid #ddd', padding: '8px' }}>
-                        {category}
-                          {Object.entries(data.data_types).find(([cat, type]) => cat === category && (type === 'float64' || type === 'int64')) && numbers !== 0 && (
-        
+                    <td style={{ border: '1px solid #ddd', padding: '8px', position: 'relative', minWidth: '200px' }}>
+                      {category}
+                      {Object.entries(data.data_types).find(([cat, type]) => cat === category && (type === 'float64' || type === 'int64')) && numbers !== 0 && (
+                        <div style={{ position: 'absolute', left: 'calc(15rem + 10px)', top: '50%', transform: 'translateY(-50%)' }}>
                           <button
                             style={{
-                              position: 'absolute',
-                              left: '8rem',
-                              marginTop: '-4px',
                               padding: '6px 16px',
                               backgroundColor: '#4CAF50',
                               color: 'white',
@@ -332,15 +329,29 @@ const FileUpload = () => {
                               cursor: 'pointer',
                               boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
                               transition: 'background-color 0.3s ease',
+                              zIndex: 1,
                             }}
                             onClick={() => handleNull(category)}
                           >
                             Remove Null Values
                           </button>
-                        )}
-                      </td>
-                      <td style={{ border: '1px solid #ddd', padding: '8px' }}>{value}</td>
-                    </tr>
+                        </div>
+                      )}
+                      <div style={{ position: 'absolute', left: 'calc(8rem + 10px)', top: '50%', transform: 'translateY(-50%)', zIndex: 0 }}> {/* Ensure span is behind the button */}
+                        {Object.entries(data.data_types).map(([cat, value]) => {
+                          if (cat === category) {
+                            return (
+                              <span key={cat} style={{ backgroundColor: '#f0f0f0', padding: '4px 8px', borderRadius: '4px', zIndex: 0, whiteSpace: 'nowrap' }}>
+                                {value}
+                              </span>
+                            );
+                          }
+                          return null;
+                        })}
+                      </div>
+                    </td>
+                    <td style={{ border: '1px solid #ddd', padding: '8px' }}>{value}</td>
+                  </tr>
                   );
                 })}
               </tbody>
