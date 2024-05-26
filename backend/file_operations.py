@@ -163,5 +163,12 @@ def drop_column(file_path, columns):
         print(f"Error dropping columns: {e}")
         return None
 
-
+def process_dataframe(df, command):
+    try:
+        result = eval("df" + command)
+        return result
+    except AttributeError:
+        print("Invalid command")
+    except Exception as e:
+        print("Error:", e)
 

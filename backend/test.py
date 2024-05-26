@@ -1,20 +1,12 @@
-from file_operations import drop_column
+from file_operations import process_dataframe
 import pandas as pd
 
 # Sample CSV file path
 file_path = "uploads/titanic.csv"
 
-# Columns to drop
-columns_to_drop = ['Sex']
+df = pd.read_csv(file_path)
 
-# Call the drop_column function with the file path and columns to drop
-modified_df = drop_column(file_path, columns_to_drop)
+result = process_dataframe(df, ".isnull().sum()")
 
-if modified_df is not None:
-    print("Columns dropped successfully:")
-    print(modified_df)
-else:
-    print("Error dropping columns.")
-
-
+print(result)
 

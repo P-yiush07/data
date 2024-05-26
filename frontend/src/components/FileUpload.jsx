@@ -278,27 +278,7 @@ const FileUpload = () => {
       )}
 
       {data !== null && (
-        <div>
-          <div>
-            <h2>Data-Type Table</h2>
-            <table style={{ borderCollapse: 'collapse', width: '100%' }}>
-              <thead>
-                <tr>
-                  <th style={{ border: '1px solid #ddd', padding: '8px', backgroundColor: '#f2f2f2' }}>Category</th>
-                  <th style={{ border: '1px solid #ddd', padding: '8px', backgroundColor: '#f2f2f2' }}>Value</th>
-                </tr>
-              </thead>
-              <tbody>
-                {Object.entries(data.data_types).map(([category, value]) => (
-                  <tr key={category}>
-                    <td style={{ border: '1px solid #ddd', padding: '8px' }}>{category}</td>
-                    <td style={{ border: '1px solid #ddd', padding: '8px' }}>{value}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
+        <div style={{ marginTop: '2rem' }}>  
           <div>
             <h2>Missing Values Table</h2>
             <table style={{ borderCollapse: 'collapse', width: '100%' }}>

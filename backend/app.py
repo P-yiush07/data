@@ -2,7 +2,7 @@ from flask import Flask, request, make_response, jsonify
 import pandas as pd
 import os
 from flask_cors import CORS
-from file_operations import read_tail, describe, plot_histogram, trainModel, fill_na_with_mean, drop_column
+from file_operations import read_tail, describe, plot_histogram, trainModel, fill_na_with_mean, drop_column, process_dataframe
 import threading
 import numpy as np
 import json
@@ -259,7 +259,32 @@ def drop():
         # Construct error response
         return make_response(jsonify({'error': 'Failed to drop column(s)'}), 500)
 
-  
+
+@app.route('/prcoessdf', methods=['POST'])
+def process():
+    global latest_file_path
+
+    if latest_file_path is None:
+        return make_response(jsonify({'error': 'No file uploaded yet'}), 400)
+    
+    df = pd.read_csv(latest_file_path)
+    
+    # Get the command from the request
+    command = request.form.get('command')
+
+    if command is None:
+        return make_response(jsonify({'error': 'No command provided'}), 400)
+
+    try:
+        result = process_dataframe(df, command)
+        if result is not None:
+            return result.to_json()  # Return the result as JSON
+        else:
+            return make_response(jsonify({'error': 'Invalid command'}), 400)
+    except Exception as e:
+        return make_response(jsonify({'error': str(e)}), 500)
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)
